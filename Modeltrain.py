@@ -15,7 +15,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 
 
-PATH = "/home/smoke/Documents/Machine Learning/project/NeuACF/processed/"
+PATH = "/home/smoke/Documents/Machine Learning/project/NeuACF/processed/" #path where all processed similarity matric all data is kept
 
 class NeuACF(nn.Module):
   def __init__(self, num_U, num_I):
