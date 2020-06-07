@@ -7,7 +7,7 @@ Created on Sun May 31 16:50:33 2020
 """
 import pickle
 import numpy as np
-PATH = "/home/smoke/Documents/Machine Learning/project/NeuACF/processed/"
+PATH = "/home/smoke/Documents/Machine Learning/project/NeuACF/processed1/"
 
 print("loading results")
 a_file = open(PATH+"test_resuts.pkl", "rb")
@@ -30,7 +30,7 @@ for key in test_dict:
     results_dict[key] = l2[::-1]
   
 ##### Finally testing for different top k
-positives = np.genfromtxt("/home/smoke/Documents/Machine Learning/project/NeuACF/dataset/amazon/amovie.test.rating",delimiter="\t",max_rows=3000)
+positives = np.genfromtxt(PATH+"amovie.test.rating",delimiter="\t",max_rows=3000)
 positives = np.array(positives, dtype=int)
 positives = np.delete(positives, [2,3], axis = 1)
 c=list()
@@ -47,4 +47,4 @@ for k in range(5,21,5):
         if i[1] in l[:k]:
             count += 1
             NDCC += 1/np.log2(1 + np.where(l==i[1])[0] + 1)  #### added 1 because indexing starts at 0
-    print("For top "+str(k)+": HR = "+str(count/len(positives))+" NDCC = "+str(NDCC/len(positives)))
+    print("For top "+str(k)+": HR = "+str(count/len(positives))+" NDCG = "+str(NDCC/len(positives)))
