@@ -13,7 +13,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 import pickle
 
-PATH = "/home/smoke/Documents/Machine Learning/project/NeuACF/processed/"
+PATH = "/home/smoke/Documents/Machine Learning/project/NeuACF/processed1/"
 
 class NeuACF(nn.Module):
   def __init__(self, num_U, num_I):
@@ -80,7 +80,7 @@ num_items = 1000
 
 print("loading model parameters")
 net = NeuACF(num_users,num_items)
-net.load_state_dict(torch.load(PATH+'net.pt'))
+net.load_state_dict(torch.load(PATH+'net_cat.pt', map_location={'cuda:0': 'cpu'}))
 print("Done")
 net.eval()
 
@@ -91,10 +91,10 @@ print("Done")
 
 
 print("Loading similarity matrix")
-uibiu = np.genfromtxt(PATH+"UICIU.csv",delimiter=',')
-uiu = np.genfromtxt(PATH+"UIU.csv",delimiter=',')
-iui = np.genfromtxt(PATH+"IUI.csv",delimiter=',')
-ibi = np.genfromtxt(PATH+"ICI.csv",delimiter=',')
+uibiu = np.genfromtxt(PATH+"similarities/UICIU.csv",delimiter=',')
+uiu = np.genfromtxt(PATH+"similarities/UIU.csv",delimiter=',')
+iui = np.genfromtxt(PATH+"similarities/IUI.csv",delimiter=',')
+ibi = np.genfromtxt(PATH+"similarities/ICI.csv",delimiter=',')
 print("Done")
 
 ###### evaluation
