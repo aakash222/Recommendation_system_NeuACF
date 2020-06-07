@@ -111,7 +111,7 @@ print("total samples: ",len(train_ratings))
 train_ratings = np.array(train_ratings, dtype=int)
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-epochs = 4
+epochs = 40
 batch_size = 128
 learning_rate = .0005
 net = NeuACF(num_users, num_items).float().to(device)
