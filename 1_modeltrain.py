@@ -15,7 +15,7 @@ import torch.optim as optim
 import torch.nn.functional as F
 
 
-PATH = "/home/smoke/Documents/Machine Learning/project/NeuACF/processed/" #path where all processed similarity matric all data is kept
+PATH = "/home/smoke/Documents/Machine Learning/project/NeuACF/processed1/"
 
 class NeuACF(nn.Module):
   def __init__(self, num_U, num_I):
@@ -81,11 +81,11 @@ class NeuACF(nn.Module):
 #num_I =
 
 ratings = np.genfromtxt(PATH+"ratings_reduced.txt",delimiter=' ')
-uibiu = np.genfromtxt(PATH+"UICIU.csv",delimiter=',')
-uiu = np.genfromtxt(PATH+"UIU.csv",delimiter=',')
-iui = np.genfromtxt(PATH+"IUI.csv",delimiter=',')
-ibi = np.genfromtxt(PATH+"ICI.csv",delimiter=',')
-rat_mat = np.genfromtxt(PATH+"UI_mat_3000_1000.csv",delimiter=',')
+uibiu = np.genfromtxt(PATH+"similarities/UICIU.csv",delimiter=',')
+uiu = np.genfromtxt(PATH+"similarities/UIU.csv",delimiter=',')
+iui = np.genfromtxt(PATH+"similarities/IUI.csv",delimiter=',')
+ibi = np.genfromtxt(PATH+"similarities/ICI.csv",delimiter=',')
+rat_mat = np.genfromtxt(PATH+"UI_new.csv",delimiter=',')
 
 
 
@@ -99,7 +99,7 @@ for i in ratings:
 print("positive samples: ",len(train_ratings))
 ##### negative sampling
 negative_samples = list()
-negative_sampling_ratio = 5
+negative_sampling_ratio = 10
 for i in range(len(ratings)):
   for neg in range(negative_sampling_ratio):
     j = np.random.randint(num_items)
@@ -110,10 +110,11 @@ for i in range(len(ratings)):
 print("total samples: ",len(train_ratings))
 train_ratings = np.array(train_ratings, dtype=int)
 
-epochs = 5
+device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+epochs = 4
 batch_size = 128
-learning_rate = .0008
-net = NeuACF(num_users, num_items).float()
+learning_rate = .0005
+net = NeuACF(num_users, num_items).float().to(device)
 criterion = nn.BCELoss()
 optimizer = optim.Adam(net.parameters(), lr=learning_rate)
 
@@ -142,20 +143,22 @@ for epoch in range(epochs):
     for i in i_id:
       ibi_data.append(ibi[i])
 
-    uibiu_data = torch.tensor(uibiu_data).view(batch_size,num_users).unsqueeze(1).unsqueeze(1)
-    uiu_data = torch.tensor(uiu_data).view(batch_size,num_users).unsqueeze(1).unsqueeze(1)
-    iui_data = torch.tensor(iui_data).view(batch_size,num_items).unsqueeze(1).unsqueeze(1)
-    ibi_data = torch.tensor(ibi_data).view(batch_size,num_items).unsqueeze(1).unsqueeze(1)
-    y = torch.tensor(train_ratings[(batch*batch_size):(batch*batch_size)+batch_size,2])
+    uibiu_data = torch.tensor(uibiu_data,dtype=torch.float).view(batch_size,num_users).unsqueeze(1).unsqueeze(1).to(device)
+    uiu_data = torch.tensor(uiu_data,dtype=torch.float).view(batch_size,num_users).unsqueeze(1).unsqueeze(1).to(device)
+    iui_data = torch.tensor(iui_data,dtype=torch.float).view(batch_size,num_items).unsqueeze(1).unsqueeze(1).to(device)
+    ibi_data = torch.tensor(ibi_data,dtype=torch.float).view(batch_size,num_items).unsqueeze(1).unsqueeze(1).to(device)
+    y = torch.tensor(train_ratings[(batch*batch_size):(batch*batch_size)+batch_size,2],dtype=torch.float).to(device)
 
     optimizer.zero_grad()
-    out = net(uibiu_data.float(),uiu_data.float(),ibi_data.float(),iui_data.float())
-    loss = criterion(out,y.float())
+    out = net(uibiu_data,uiu_data,ibi_data,iui_data)
+    loss = criterion(out,y)
     loss.backward()
     optimizer.step()
     l+=loss
+
     c+=1
-    if c%10 == 9:
+    if c%10 == 0:
       print("epoch: "+str(epoch)+" batch: "+str(c)+" loss: "+str(l))
       l = 0
-torch.save(net.state_dict(),PATH+"net.pt")
+    if c%100 == 0:
+      torch.save(net.state_dict(),PATH+"net_cat.pt")
